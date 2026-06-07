@@ -103,14 +103,32 @@ function initDropdowns() {
 /* ── Активная ссылка в меню ── */
 function setActiveNavLink() {
   const path = decodeURIComponent(location.pathname);
+  const pathParts = path.split('/').filter(Boolean);
+
   document.querySelectorAll('.nav-link, .dropdown-link').forEach(link => {
+    link.classList.remove('active');
+
     const href = link.getAttribute('href') || '';
-    const cleanHref = href.replace(/^(\.\.\/)+/, '').replace(/^\.\//, '');
-    const isHome = (path.endsWith('/') || path.endsWith('index.html')) &&
-                   (cleanHref === 'index.html' || cleanHref === '');
-    const segment = cleanHref.replace('index.html', '').replace('pages/', '').split('/')[0];
-    const isMatch = !isHome && segment && path.includes(segment);
-    link.classList.toggle('active', isHome || isMatch);
+    if (!href || href === '#') return;
+
+    const clean = href.replace(/^(\.\.\/)+/, '').replace(/^\.\//, '');
+    const cleanParts = clean.split('/').filter(Boolean);
+
+    // Главная страница
+    if (clean === 'index.html') {
+      const isHome = path.endsWith('/') || path.endsWith('index.html') && pathParts.length === 1;
+      if (isHome) link.classList.add('active');
+      return;
+    }
+
+    // Ищем совпадение по сегменту папки страницы
+    // clean = pages/contacts/index.html → ключевой сегмент = contacts
+    const linkSegment = cleanParts[cleanParts.length - 2] || '';
+    const pathSegment = pathParts[pathParts.length - 2] || '';
+
+    if (linkSegment && linkSegment === pathSegment) {
+      link.classList.add('active');
+    }
   });
 }
 
